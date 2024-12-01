@@ -19,7 +19,7 @@ public class MovieEntityConfiguration : IEntityTypeConfiguration<Movie>
             .IsRequired();
 
         builder.HasMany(x => x.Actors)
-            .WithMany();
+            .WithMany(x => x.Movies);
 
         builder.OwnsMany(x => x.Ratings, rating =>
         {
