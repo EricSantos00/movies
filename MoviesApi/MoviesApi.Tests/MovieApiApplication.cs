@@ -20,7 +20,7 @@ internal class MovieApiApplication : WebApplicationFactory<Program>
         return db;
     }
 
-    public HttpClient CreateAuthenticatedClient()
+    public HttpClient CreateAuthorizedClient()
     {
         return CreateDefaultClient(new ApiKeyHandler(Services));
     }
