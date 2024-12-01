@@ -5,12 +5,12 @@ using MoviesApi.Features.Actors.Models;
 
 namespace MoviesApi.Features.Actors;
 
-public record GetActorDetailsQueryRequest(Guid Id) : IRequest<ActorsDetailsViewModel?>;
+public record GetActorDetailsQueryRequest(Guid Id) : IRequest<ActorDetailsViewModel?>;
 
 public class GetActorDetailsQueryHandler(ApplicationDbContext applicationDbContext)
-    : IRequestHandler<GetActorDetailsQueryRequest, ActorsDetailsViewModel?>
+    : IRequestHandler<GetActorDetailsQueryRequest, ActorDetailsViewModel?>
 {
-    public async Task<ActorsDetailsViewModel?> Handle(GetActorDetailsQueryRequest queryRequest,
+    public async Task<ActorDetailsViewModel?> Handle(GetActorDetailsQueryRequest queryRequest,
         CancellationToken cancellationToken)
     {
         var actor = await applicationDbContext.Actors
@@ -18,6 +18,6 @@ public class GetActorDetailsQueryHandler(ApplicationDbContext applicationDbConte
             .Include(x => x.Movies)
             .FirstOrDefaultAsync(x => x.Id == queryRequest.Id, cancellationToken);
         
-        return actor is null ? null : ActorsDetailsViewModel.FromActor(actor);
+        return actor is null ? null : ActorDetailsViewModel.FromActor(actor);
     }
 }

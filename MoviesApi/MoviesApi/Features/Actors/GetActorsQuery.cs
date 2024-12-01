@@ -7,12 +7,12 @@ using MoviesApi.Features.Actors.Models;
 
 namespace MoviesApi.Features.Actors;
 
-public record GetActorsQueryRequest(string? Name) : IRequest<List<ActorsViewModel>>;
+public record GetActorsQueryRequest(string? Name) : IRequest<List<ActorViewModel>>;
 
 public class GetActorsQueryHandler(ApplicationDbContext applicationDbContext)
-    : IRequestHandler<GetActorsQueryRequest, List<ActorsViewModel>>
+    : IRequestHandler<GetActorsQueryRequest, List<ActorViewModel>>
 {
-    public async Task<List<ActorsViewModel>> Handle(GetActorsQueryRequest request, CancellationToken cancellationToken)
+    public async Task<List<ActorViewModel>> Handle(GetActorsQueryRequest request, CancellationToken cancellationToken)
     {
         var actorsQuery = applicationDbContext.Actors.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(request.Name))
@@ -23,8 +23,8 @@ public class GetActorsQueryHandler(ApplicationDbContext applicationDbContext)
             .ToListAsync(cancellationToken);
     }
 
-    private static Expression<Func<Actor, ActorsViewModel>> ToViewModel()
+    private static Expression<Func<Actor, ActorViewModel>> ToViewModel()
     {
-        return a => ActorsViewModel.FromActor(a);
+        return a => ActorViewModel.FromActor(a);
     }
 }

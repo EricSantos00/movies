@@ -31,8 +31,8 @@ public class ActorsEndpointsTests
         await applicationDbContext.SaveChangesAsync();
 
         var client = application.CreateClient();
-        var actorsResult = await client.GetFromJsonAsync<List<ActorsViewModel>>("/actors");
-        
+        var actorsResult = await client.GetFromJsonAsync<List<ActorViewModel>>("/actors");
+
         actorsResult.Should().NotBeNullOrEmpty();
         actorsResult.Should().HaveCount(2);
 
@@ -69,8 +69,8 @@ public class ActorsEndpointsTests
         await applicationDbContext.SaveChangesAsync();
 
         var client = application.CreateClient();
-        var actorsResult = await client.GetFromJsonAsync<List<ActorsViewModel>>("/actors?name=Alexandr");
-        
+        var actorsResult = await client.GetFromJsonAsync<List<ActorViewModel>>("/actors?name=Alexandr");
+
         actorsResult.Should().NotBeNullOrEmpty();
         actorsResult.Should().HaveCount(2);
         actorsResult.Should().AllSatisfy(x => { x.Name.Should().Contain("Alexandre"); });
@@ -84,7 +84,7 @@ public class ActorsEndpointsTests
 
         var client = application.CreateClient();
         var result = await client.GetAsync($"/actors/{Guid.NewGuid()}");
-        
+
         result.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -112,8 +112,8 @@ public class ActorsEndpointsTests
         await applicationDbContext.SaveChangesAsync();
 
         var client = application.CreateClient();
-        var actorResult = await client.GetFromJsonAsync<ActorsDetailsViewModel>($"/actors/{actor.Id}");
-        
+        var actorResult = await client.GetFromJsonAsync<ActorDetailsViewModel>($"/actors/{actor.Id}");
+
         actorResult.Should().NotBeNull();
         actorResult!.Id.Should().Be(actor.Id);
         actorResult.Name.Should().Be(actor.Name);
@@ -146,7 +146,7 @@ public class ActorsEndpointsTests
             await client.PostAsJsonAsync("/actors", new CreateActorCommandRequest(actorName, [movie.Id]));
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
-        var actorDetailsResponse = await response.Content.ReadFromJsonAsync<ActorsDetailsViewModel>();
+        var actorDetailsResponse = await response.Content.ReadFromJsonAsync<ActorDetailsViewModel>();
         actorDetailsResponse.Should().NotBeNull();
         actorDetailsResponse!.Name.Should().Be(actorName);
         actorDetailsResponse!.Movies.Should().HaveCount(1);
@@ -161,7 +161,71 @@ public class ActorsEndpointsTests
         var client = application.CreateClient();
         var response =
             await client.PostAsJsonAsync("/actors", new CreateActorCommandRequest("Luis Garcia", []));
-        
+
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task DeleteActor_UnauthorizedClient_ReturnsForbidden()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+
+        var actor = new Actor
+        {
+            Name = "actor-details"
+        };
+        await applicationDbContext.Actors.AddRangeAsync(actor);
+        await applicationDbContext.SaveChangesAsync();
+
+        var client = application.CreateClient();
+        var response = await client.DeleteAsync($"/actors/{actor.Id}");
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task DeleteActor_NonExistingActor_ReturnsNotFound()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+
+        var client = application.CreateAuthorizedClient();
+        var response = await client.DeleteAsync($"/actors/{Guid.NewGuid()}");
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteActor_DeletesActor()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+
+        var movie = new Movie
+        {
+            Title = "movie-title",
+            Description = "movie-details",
+            ReleaseDate = DateTime.Now,
+            Ratings = [new MovieRating(4)]
+        };
+        var actor = new Actor
+        {
+            Name = "actor-details",
+            Movies = new HashSet<Movie>
+            {
+                movie
+            }
+        };
+        await applicationDbContext.Actors.AddRangeAsync(actor);
+        await applicationDbContext.SaveChangesAsync();
+
+        var client = application.CreateAuthorizedClient();
+        var response = await client.DeleteAsync($"/actors/{actor.Id}");
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var actorDetails = await client.GetAsync($"/actors/{actor.Id}");
+        actorDetails.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        
+        var movieInDb = await applicationDbContext.Movies.FindAsync(movie.Id);
+        movieInDb.Should().NotBeNull();
     }
 }
