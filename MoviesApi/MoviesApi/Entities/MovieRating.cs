@@ -1,4 +1,6 @@
-﻿namespace MoviesApi.Entities;
+﻿using MoviesApi.Validations;
+
+namespace MoviesApi.Entities;
 
 public class MovieRating
 {
@@ -7,7 +9,7 @@ public class MovieRating
     public MovieRating(int rating)
     {
         if (rating is < 0 or > 5)
-            throw new ArgumentException("Rating must be between 0 and 5.");
+            throw new ValidationException(nameof(Rating), "Rating must be between 0 and 5.");
 
         Rating = rating;
     }
