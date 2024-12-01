@@ -3,5 +3,5 @@
 public class Actor : BaseEntity
 {
     public required string Name { get; set; }
-    public List<Movie> Movies { get; set; } = [];
+    public ISet<Movie> Movies { get; set; } = new HashSet<Movie>();
 }

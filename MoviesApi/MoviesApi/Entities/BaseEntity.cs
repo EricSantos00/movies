@@ -2,7 +2,7 @@
 
 public abstract class BaseEntity : IEquatable<BaseEntity>
 {
-    private Guid Id { get; }
+    public Guid Id { get; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now;
     public DateTimeOffset? UpdatedAt { get; set; }
 

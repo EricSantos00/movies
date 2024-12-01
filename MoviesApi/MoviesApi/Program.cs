@@ -1,34 +1,19 @@
-using Microsoft.OpenApi.Models;
-using MoviesApi.Authentication;
+using MoviesApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(x =>
-{
-    x.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
-    {
-        Description = "The API key to access the API. Use hard-coded value 'api-key'.",
-        Name = "x-api-key",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "ApiKeyScheme"
-    });
-});
+builder.Services.AddOpenApi(x => x.AddApiKeyAuthentication());
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c => { c.SwaggerEndpoint("v1/swagger.json", "v1"); });
+    app.MapOpenApi();
+    app.UseSwaggerUI(options => { options.SwaggerEndpoint("/openapi/v1.json", "v1"); });
 }
 
-app.MapSwagger();
 app.UseHttpsRedirection();
-
-app.UseMiddleware<ApiKeyAuthenticationMiddleware>();
 
 var summaries = new[]
 {
