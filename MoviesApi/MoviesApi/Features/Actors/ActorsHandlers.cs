@@ -10,11 +10,15 @@ public static class ActorsHandlers
 {
     public static RouteGroupBuilder MapActors(this RouteGroupBuilder routes)
     {
+        routes.MapGet("/", GetActors)
+            .WithTags("actors")
+            .WithDescription("Get all actors")
+            .WithName(nameof(GetActors));
+
         routes.MapGet("/{id:guid}", GetActorDetails)
             .WithTags("actors")
             .WithDescription("Get actor details")
-            .WithName(nameof(GetActorDetails))
-            .RequiresApiKey();
+            .WithName(nameof(GetActorDetails));
 
         routes.MapPost("/", CreateActor)
             .WithTags("actors")
@@ -25,7 +29,14 @@ public static class ActorsHandlers
         return routes;
     }
 
-    private static async Task<Results<Ok<ActorDetailsViewModel>, NotFound>> GetActorDetails(
+    private static async Task<Ok<List<ActorsViewModel>>> GetActors([FromServices] IMediator mediator,
+        [AsParameters] GetActorsQueryRequest request)
+    {
+        var actors = await mediator.Send(request);
+        return TypedResults.Ok(actors);
+    }
+
+    private static async Task<Results<Ok<ActorsDetailsViewModel>, NotFound>> GetActorDetails(
         [FromServices] IMediator mediator, Guid id)
     {
         var actorDetails = await mediator.Send(new GetActorDetailsQueryRequest(id));
@@ -35,7 +46,7 @@ public static class ActorsHandlers
         return TypedResults.Ok(actorDetails);
     }
 
-    private static async Task<CreatedAtRoute<ActorDetailsViewModel>> CreateActor([FromServices] IMediator mediator,
+    private static async Task<CreatedAtRoute<ActorsDetailsViewModel>> CreateActor([FromServices] IMediator mediator,
         CreateActorCommandRequest request)
     {
         var result = await mediator.Send(request);

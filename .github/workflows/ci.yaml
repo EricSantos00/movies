@@ -1,0 +1,22 @@
+name: CI
+
+on: [ push ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+
+      - name: Restore dependencies
+        run: dotnet restore MoviesApi.sln
+
+      - name: dotnet build
+        run: dotnet build MoviesApi.sln -c Release --no-restore
+
+      - name: dotnet test
+        run: dotnet test MoviesApi.sln -c Release --no-build

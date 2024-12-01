@@ -1,3 +1,4 @@
+using MoviesApi.Data.Seeders;
 using MoviesApi.Extensions;
 using MoviesApi.Features.Actors;
 
@@ -7,6 +8,7 @@ builder.Services.AddOpenApi(x => x.AddApiKeyAuthentication());
 builder.Services.AddAppServices();
 
 var app = builder.Build();
+await app.Services.SeedDatabase();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

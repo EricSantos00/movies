@@ -1,6 +1,6 @@
 ﻿using MoviesApi.Entities;
 
-namespace MoviesApi.Features.Actors.Models;
+namespace MoviesApi.Features.Movies.Models;
 
 public record MovieViewModel(Guid Id, string Title, string Description, DateTime ReleaseDate, double AverageRating)
 {

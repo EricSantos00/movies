@@ -1,6 +1,6 @@
 ﻿namespace MoviesApi.Authentication;
 
-public class ApiKeyAuthenticationMiddleware : IEndpointFilter
+public sealed class ApiKeyAuthenticationMiddleware : IEndpointFilter
 {
     // This value would normally be injected from the constructor.
     private const string ApiKeyHeaderValue = "api-key";
