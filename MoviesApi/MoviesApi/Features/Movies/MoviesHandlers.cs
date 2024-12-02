@@ -38,7 +38,28 @@ public static class MoviesHandlers
             .WithName(nameof(UpdateMovie))
             .RequiresApiKey();
 
+        routes.MapPost("/{id:guid}/rate", RateMovie)
+            .WithTags("movies")
+            .WithDescription("Rates a movie")
+            .WithName(nameof(RateMovie))
+            .RequiresApiKey();
+
         return routes;
+    }
+
+    private static async Task<Results<Ok<MovieDetailsViewModel>, NotFound<string>>> RateMovie(
+        [FromServices] IMediator mediator,
+        Guid id,
+        RateMovieCommandRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var rateResult = await mediator.Send(request with { Id = id }, cancellationToken);
+        if (rateResult)
+        {
+            return TypedResults.Ok(await mediator.Send(new GetMovieDetailsQueryRequest(id), cancellationToken));
+        }
+
+        return TypedResults.NotFound("Movie not found");
     }
 
     private static async Task<Results<Ok<MovieDetailsViewModel>, NotFound<string>>> UpdateMovie(

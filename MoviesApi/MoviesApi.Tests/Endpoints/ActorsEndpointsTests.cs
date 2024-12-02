@@ -108,7 +108,7 @@ public class ActorsEndpointsTests
                 }
             }
         };
-        await applicationDbContext.Actors.AddRangeAsync(actor);
+        await applicationDbContext.Actors.AddAsync(actor);
         await applicationDbContext.SaveChangesAsync();
 
         var client = application.CreateClient();
@@ -212,7 +212,7 @@ public class ActorsEndpointsTests
         {
             Name = "actor-name"
         };
-        await applicationDbContext.Actors.AddRangeAsync(actor);
+        await applicationDbContext.Actors.AddAsync(actor);
         await applicationDbContext.SaveChangesAsync();
 
         var client = application.CreateClient();
@@ -252,7 +252,7 @@ public class ActorsEndpointsTests
                 movie
             }
         };
-        await applicationDbContext.Actors.AddRangeAsync(actor);
+        await applicationDbContext.Actors.AddAsync(actor);
         await applicationDbContext.SaveChangesAsync();
 
         var client = application.CreateAuthorizedClient();
@@ -276,7 +276,7 @@ public class ActorsEndpointsTests
         {
             Name = "actor-name"
         };
-        await applicationDbContext.Actors.AddRangeAsync(actor);
+        await applicationDbContext.Actors.AddAsync(actor);
         await applicationDbContext.SaveChangesAsync();
 
         var client = application.CreateClient();

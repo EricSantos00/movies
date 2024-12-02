@@ -131,7 +131,7 @@ public class MoviesEndpointsTests
                 }
             }
         };
-        await applicationDbContext.Movies.AddRangeAsync(movie);
+        await applicationDbContext.Movies.AddAsync(movie);
         await applicationDbContext.SaveChangesAsync();
 
         var client = application.CreateClient();
@@ -237,7 +237,7 @@ public class MoviesEndpointsTests
             ReleaseDate = DateTime.Now,
             Ratings = [new MovieRating(5)]
         };
-        await applicationDbContext.Movies.AddRangeAsync(movie);
+        await applicationDbContext.Movies.AddAsync(movie);
         await applicationDbContext.SaveChangesAsync();
 
         var client = application.CreateClient();
@@ -277,7 +277,7 @@ public class MoviesEndpointsTests
                 actor
             }
         };
-        await applicationDbContext.Movies.AddRangeAsync(movie);
+        await applicationDbContext.Movies.AddAsync(movie);
         await applicationDbContext.SaveChangesAsync();
 
         var client = application.CreateAuthorizedClient();
@@ -304,7 +304,7 @@ public class MoviesEndpointsTests
             ReleaseDate = DateTime.Now,
             Ratings = [new MovieRating(5)]
         };
-        await applicationDbContext.Movies.AddRangeAsync(movie);
+        await applicationDbContext.Movies.AddAsync(movie);
         await applicationDbContext.SaveChangesAsync();
 
         var client = application.CreateClient();
@@ -424,5 +424,106 @@ public class MoviesEndpointsTests
             "The length of 'Title' must be 500 characters or fewer. You entered 501 characters.");
         errors.Should().Contain(x => x.PropertyName == "Description" && x.ErrorMessage ==
             "The length of 'Description' must be 2000 characters or fewer. You entered 2001 characters.");
+    }
+
+    [Fact]
+    public async Task RateMovie_UnauthorizedClient_ReturnsForbidden()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+
+        var movie = new Movie
+        {
+            Title = "The Godfather I",
+            Description = "movie-details-1",
+            ReleaseDate = DateTime.Now,
+            Ratings = [new MovieRating(5)]
+        };
+        await applicationDbContext.Movies.AddAsync(movie);
+        await applicationDbContext.SaveChangesAsync();
+        var rateMovieCommandRequest = new RateMovieCommandRequest(movie.Id, 5);
+
+        var client = application.CreateClient();
+        var response = await client.PostAsJsonAsync($"/movies/{movie.Id}/rate", rateMovieCommandRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+    
+    [Fact]
+    public async Task RateMovie_NonExistingMovie_ReturnsNotFound()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+
+        var rateMovieCommandRequest = new RateMovieCommandRequest(Guid.NewGuid(), 5);
+
+        var client = application.CreateAuthorizedClient();
+        var response =
+            await client.PostAsJsonAsync($"/movies/{rateMovieCommandRequest.Id}/rate", rateMovieCommandRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(6)]
+    public async Task RateMovie_InvalidRateValue_ReturnsBadRequest(int rate)
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+        var movie = new Movie
+        {
+            Title = "The Godfather I",
+            Description = "movie-details-1",
+            ReleaseDate = DateTime.Now,
+            Ratings = [new MovieRating(5)]
+        };
+        await applicationDbContext.Movies.AddAsync(movie);
+        await applicationDbContext.SaveChangesAsync();
+        var rateMovieCommandRequest = new RateMovieCommandRequest(movie.Id, rate);
+
+        var client = application.CreateAuthorizedClient();
+        var result =
+            await client.PostAsJsonAsync($"/movies/{rateMovieCommandRequest.Id}/rate", rateMovieCommandRequest);
+
+        result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var problemDetails = await result.Content.ReadFromJsonAsync<ProblemDetails>();
+        problemDetails!.Type.Should().Be("ValidationFailure");
+        problemDetails.Title.Should().Be("Validation error");
+        problemDetails.Detail.Should().Be("One or more validation errors has occurred");
+
+        var errors = JsonSerializer.Deserialize<ValidationError[]>(problemDetails.Extensions["errors"]!.ToString()!,
+            new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+        errors!.Length.Should().Be(1);
+        errors.Should().Contain(x => x.PropertyName == "Rate" && x.ErrorMessage ==
+            $"'Rate' must be between 0 and 5. You entered {rate}.");
+    }
+
+    [Fact]
+    public async Task RateMovie_RatesMovie()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+        var movie = new Movie
+        {
+            Title = "The Godfather I",
+            Description = "movie-details-1",
+            ReleaseDate = DateTime.Now,
+            Ratings = [new MovieRating(5)]
+        };
+        await applicationDbContext.Movies.AddAsync(movie);
+        await applicationDbContext.SaveChangesAsync();
+        var rateMovieCommandRequest = new RateMovieCommandRequest(movie.Id, 4);
+
+        var client = application.CreateAuthorizedClient();
+        var result =
+            await client.PostAsJsonAsync($"/movies/{rateMovieCommandRequest.Id}/rate", rateMovieCommandRequest);
+
+        result.Should().NotBeNull();
+        result.StatusCode.Should().Be(HttpStatusCode.OK);
+        var movieDetailsResponse = await result.Content.ReadFromJsonAsync<MovieDetailsViewModel>();
+        movieDetailsResponse!.Id.Should().Be(movie.Id);
+        movieDetailsResponse.AverageRating.Should().Be(4.5);
     }
 }
