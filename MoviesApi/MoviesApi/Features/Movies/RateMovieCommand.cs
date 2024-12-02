@@ -6,6 +6,11 @@ using MoviesApi.Entities;
 
 namespace MoviesApi.Features.Movies;
 
+/// <summary>
+///  Represents a command to assign a rating to a specific movie.
+/// </summary>
+/// <param name="Id">The unique identifier of the movie to be rated.</param>
+/// <param name="Rate">The rating value. 0 ~ 5</param>
 public record RateMovieCommandRequest(Guid Id, int Rate) : IRequest<bool>;
 
 public class RateMovieCommandRequestValidator : AbstractValidator<RateMovieCommandRequest>

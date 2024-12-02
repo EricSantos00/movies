@@ -5,6 +5,14 @@ using MoviesApi.Data;
 
 namespace MoviesApi.Features.Movies;
 
+/// <summary>
+/// Represents a command with the data required to update a movie details
+/// </summary>
+/// <param name="Id">The unique identifier of the movie to be updated.</param>
+/// <param name="Title">The updated title of the movie.</param>
+/// <param name="Description">The updated description of the movie.</param>
+/// <param name="ReleaseDate">The updated release date of the movie.</param>
+/// <param name="Actors">An optional list of unique identifiers for the actors associated with the movie.</param>
 public record UpdateMovieCommandRequest(
     Guid Id,
     string Title,

@@ -6,7 +6,8 @@ using MoviesApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi(x => x.AddApiKeyAuthentication());
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwagger();
 builder.Services.AddAppServices();
 
 var app = builder.Build();
@@ -15,8 +16,9 @@ await app.Services.SeedDatabase();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    app.UseSwaggerUI(options => { options.SwaggerEndpoint("/openapi/v1.json", "v1"); });
+    app.MapSwagger();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

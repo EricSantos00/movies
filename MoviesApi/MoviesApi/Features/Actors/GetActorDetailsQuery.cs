@@ -5,6 +5,10 @@ using MoviesApi.Features.Actors.Models;
 
 namespace MoviesApi.Features.Actors;
 
+/// <summary>
+/// Represents a query to fetch detailed information about a specific actor based on their unique identifier.
+/// </summary>
+/// <param name="Id">The unique identifier of the actor whose details are being requested.</param>
 public record GetActorDetailsQueryRequest(Guid Id) : IRequest<ActorDetailsViewModel?>;
 
 public class GetActorDetailsQueryHandler(ApplicationDbContext applicationDbContext)

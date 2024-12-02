@@ -3,6 +3,10 @@ using MoviesApi.Data;
 
 namespace MoviesApi.Features.Movies;
 
+/// <summary>
+/// Represents a command to delete a movie from the system.
+/// </summary>
+/// <param name="Id">The unique identifier of the movie to be deleted.</param>
 public record DeleteMovieCommandRequest(Guid Id) : IRequest<bool>;
 
 public class DeleteMovieCommandHandler(ApplicationDbContext applicationDbContext)

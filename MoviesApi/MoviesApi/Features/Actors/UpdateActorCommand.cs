@@ -5,7 +5,14 @@ using MoviesApi.Data;
 
 namespace MoviesApi.Features.Actors;
 
-public record UpdateActorCommandRequest(Guid Id, string Name, List<Guid>? Movies) : IRequest<bool>;
+/// <summary>
+/// Represents a command with the data required to update an actor's details
+/// </summary>
+/// <param name="Id">The unique identifier of the actor to be updated.</param>
+/// <param name="Name">The updated name of the actor.</param>
+/// <param name="Movies">An optional list of unique identifiers for the movies associated with the actor.</param>
+public record UpdateActorCommandRequest(
+   Guid Id, string Name, List<Guid>? Movies) : IRequest<bool>;
 
 public class UpdateActorCommandRequestValidator : AbstractValidator<UpdateActorCommandRequest>
 {

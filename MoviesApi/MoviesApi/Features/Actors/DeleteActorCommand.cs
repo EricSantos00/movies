@@ -3,6 +3,10 @@ using MoviesApi.Data;
 
 namespace MoviesApi.Features.Actors;
 
+/// <summary>
+/// Represents a command to delete an actor from the system.
+/// </summary>
+/// <param name="Id">The unique identifier of the actor to be deleted.</param>
 public record DeleteActorCommandRequest(Guid Id) : IRequest<bool>;
 
 public class DeleteActorCommandHandler(ApplicationDbContext applicationDbContext)

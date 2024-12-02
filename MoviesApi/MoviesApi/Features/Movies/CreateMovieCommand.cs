@@ -6,6 +6,13 @@ using MoviesApi.Entities;
 
 namespace MoviesApi.Features.Movies;
 
+/// <summary>
+/// Represents a command to create a movie
+/// </summary>
+/// <param name="Title">The name of the movie.</param>
+/// <param name="Description">The description(synapse) of the movie.</param>
+/// <param name="ReleaseDate">When the movie was released.</param>
+/// <param name="Actors">An optional list of unique identifiers for the actors associated with the movie.</param>
 public record CreateMovieCommandRequest(string Title, string Description, DateTime ReleaseDate, List<Guid>? Actors)
     : IRequest<Guid>;
 

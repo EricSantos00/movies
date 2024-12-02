@@ -7,6 +7,10 @@ using MoviesApi.Features.Movies.Models;
 
 namespace MoviesApi.Features.Movies;
 
+/// <summary>
+/// Represents a query to fetch a list of movies, optionally filtered by a partial or full match of the movie title.
+/// </summary>
+/// <param name="Title">An optional filter parameter for the movie title. If null, all movies are returned; otherwise, the list is filtered based on the provided title</param>
 public record GetMoviesQueryRequest(string? Title) : IRequest<List<MovieViewModel>>;
 
 public class GetMoviesQueryHandler(ApplicationDbContext applicationDbContext)

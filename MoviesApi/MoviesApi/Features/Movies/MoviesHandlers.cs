@@ -47,6 +47,15 @@ public static class MoviesHandlers
         return routes;
     }
 
+    /// <summary>
+    /// Rates a specific movie with the rate value
+    /// </summary>
+    /// <param name="mediator"></param>
+    /// <param name="id">The unique identifier of the movie</param>
+    /// <param name="request">The data containing the rating details</param>
+    /// <param name="cancellationToken"></param>
+    /// <response code="200">Returns the movie updated details</response>
+    /// <response code="404">Movie not found</response>
     private static async Task<Results<Ok<MovieDetailsViewModel>, NotFound<string>>> RateMovie(
         [FromServices] IMediator mediator,
         Guid id,
@@ -62,6 +71,15 @@ public static class MoviesHandlers
         return TypedResults.NotFound("Movie not found");
     }
 
+    /// <summary>
+    /// Updates a movie with the provided details.
+    /// </summary>
+    /// <param name="mediator"></param>
+    /// <param name="id">The unique identifier of the movie</param>
+    /// <param name="request">The data with the details to be updated</param>
+    /// <param name="cancellationToken"></param>
+    /// <response code="200">Returns the movie updated details</response>
+    /// <response code="404">Movie not found</response>
     private static async Task<Results<Ok<MovieDetailsViewModel>, NotFound<string>>> UpdateMovie(
         [FromServices] IMediator mediator,
         Guid id,
@@ -77,6 +95,14 @@ public static class MoviesHandlers
         return TypedResults.NotFound("Actor not found");
     }
 
+    /// <summary>
+    /// Deletes a movie using the provided id.
+    /// </summary>
+    /// <param name="mediator"></param>
+    /// <param name="id">The unique identifier of the movie</param>
+    /// <param name="cancellationToken"></param>
+    /// <response code="204">Movie was deleted</response>
+    /// <response code="404">Movie not found</response>
     private static async Task<Results<NoContent, NotFound>> DeleteMovie([FromServices] IMediator mediator, Guid id,
         CancellationToken cancellationToken = default)
     {
@@ -84,6 +110,13 @@ public static class MoviesHandlers
         return deleteResult ? TypedResults.NoContent() : TypedResults.NotFound();
     }
 
+    /// <summary>
+    /// Creates a new movie with the provided details.
+    /// </summary>
+    /// <param name="mediator"></param>
+    /// <param name="request">The movie details to be created</param>
+    /// <param name="cancellationToken"></param>
+    /// <response code="201">Returns the movie details for the created movie</response>
     private static async Task<CreatedAtRoute<MovieDetailsViewModel>> CreateMovie([FromServices] IMediator mediator,
         CreateMovieCommandRequest request,
         CancellationToken cancellationToken = default)
@@ -93,6 +126,14 @@ public static class MoviesHandlers
         return TypedResults.CreatedAtRoute(movieDetails, nameof(GetMovieDetails), new { id = createdMovieId });
     }
 
+    /// <summary>
+    /// Returns the details of a movie based on the provided id.
+    /// </summary>
+    /// <param name="mediator"></param>
+    /// <param name="id">The unique identifier of the movie</param>
+    /// <param name="cancellationToken"></param>
+    /// <response code="200">Returns the movie details</response>
+    /// <response code="404">Movie not found</response>
     private static async Task<Results<Ok<MovieDetailsViewModel>, NotFound>> GetMovieDetails(
         [FromServices] IMediator mediator, Guid id,
         CancellationToken cancellationToken = default)
@@ -104,6 +145,13 @@ public static class MoviesHandlers
         return TypedResults.Ok(movieDetails);
     }
 
+    /// <summary>
+    /// Returns a list of movies. If a title is specified, returns the movies that match the title
+    /// </summary>
+    /// <param name="mediator"></param>
+    /// <param name="request">The object with the filters to be applied.</param>
+    /// <param name="cancellationToken"></param>
+    /// <response code="200">Returns the list of movies filtered based on the request</response>
     private static async Task<Ok<List<MovieViewModel>>> GetMovies([FromServices] IMediator mediator,
         [AsParameters] GetMoviesQueryRequest request, CancellationToken cancellationToken = default)
     {

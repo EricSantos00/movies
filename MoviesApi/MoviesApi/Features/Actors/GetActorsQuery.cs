@@ -7,6 +7,10 @@ using MoviesApi.Features.Actors.Models;
 
 namespace MoviesApi.Features.Actors;
 
+/// <summary>
+/// Represents a query to fetch a list of actors, optionally filtered by a partial or full match of the actor's name.
+/// </summary>
+/// <param name="Name">An optional filter parameter for the actor's name. If null, all actors are returned; otherwise, the list is filtered based on the provided name.</param>
 public record GetActorsQueryRequest(string? Name) : IRequest<List<ActorViewModel>>;
 
 public class GetActorsQueryHandler(ApplicationDbContext applicationDbContext)

@@ -6,6 +6,11 @@ using MoviesApi.Entities;
 
 namespace MoviesApi.Features.Actors;
 
+/// <summary>
+/// Represents a command to create an actor
+/// </summary>
+/// <param name="Name">The name of the actor.</param>
+/// <param name="Movies">An optional list of unique identifiers for the movies associated with the actor.</param>
 public record CreateActorCommandRequest(string Name, List<Guid>? Movies)
     : IRequest<Guid>;
 
