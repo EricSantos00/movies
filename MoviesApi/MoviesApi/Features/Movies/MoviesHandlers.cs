@@ -32,7 +32,28 @@ public static class MoviesHandlers
             .WithName(nameof(DeleteMovie))
             .RequiresApiKey();
 
+        routes.MapPut("/{id:guid}", UpdateMovie)
+            .WithTags("movies")
+            .WithDescription("Updates a movie")
+            .WithName(nameof(UpdateMovie))
+            .RequiresApiKey();
+
         return routes;
+    }
+
+    private static async Task<Results<Ok<MovieDetailsViewModel>, NotFound<string>>> UpdateMovie(
+        [FromServices] IMediator mediator,
+        Guid id,
+        UpdateMovieCommandRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var updateResult = await mediator.Send(request with { Id = id }, cancellationToken);
+        if (updateResult)
+        {
+            return TypedResults.Ok(await mediator.Send(new GetMovieDetailsQueryRequest(id), cancellationToken));
+        }
+
+        return TypedResults.NotFound("Actor not found");
     }
 
     private static async Task<Results<NoContent, NotFound>> DeleteMovie([FromServices] IMediator mediator, Guid id,
