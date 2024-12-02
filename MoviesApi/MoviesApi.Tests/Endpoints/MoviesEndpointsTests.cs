@@ -223,4 +223,71 @@ public class MoviesEndpointsTests
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task DeleteMovie_UnauthorizedClient_ReturnsForbidden()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+
+        var movie = new Movie
+        {
+            Title = "The Godfather I",
+            Description = "movie-details-1",
+            ReleaseDate = DateTime.Now,
+            Ratings = [new MovieRating(5)]
+        };
+        await applicationDbContext.Movies.AddRangeAsync(movie);
+        await applicationDbContext.SaveChangesAsync();
+
+        var client = application.CreateClient();
+        var response = await client.DeleteAsync($"/movies/{movie.Id}");
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task DeleteMovie_NonExistingMovie_ReturnsNotFound()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+
+        var client = application.CreateAuthorizedClient();
+        var response = await client.DeleteAsync($"/movies/{Guid.NewGuid()}");
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DeleteMovie_DeletesMovie()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+
+        var actor = new Actor
+        {
+            Name = "actor-name"
+        };
+        var movie = new Movie
+        {
+            Title = "movie-title",
+            Description = "movie-details",
+            ReleaseDate = DateTime.Now,
+            Ratings = [new MovieRating(4)],
+            Actors = new HashSet<Actor>
+            {
+                actor
+            }
+        };
+        await applicationDbContext.Movies.AddRangeAsync(movie);
+        await applicationDbContext.SaveChangesAsync();
+
+        var client = application.CreateAuthorizedClient();
+        var response = await client.DeleteAsync($"/movies/{movie.Id}");
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        var movieDetailsResponse = await client.GetAsync($"/movies/{movie.Id}");
+        movieDetailsResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        var actorInDb = await applicationDbContext.Actors.FindAsync(actor.Id);
+        actorInDb.Should().NotBeNull();
+    }
 }

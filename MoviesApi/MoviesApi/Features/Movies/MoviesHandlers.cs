@@ -26,7 +26,20 @@ public static class MoviesHandlers
             .WithName(nameof(CreateMovie))
             .RequiresApiKey();
 
+        routes.MapDelete("/{id:guid}", DeleteMovie)
+            .WithTags("movies")
+            .WithDescription("Deletes a movie")
+            .WithName(nameof(DeleteMovie))
+            .RequiresApiKey();
+
         return routes;
+    }
+
+    private static async Task<Results<NoContent, NotFound>> DeleteMovie([FromServices] IMediator mediator, Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var deleteResult = await mediator.Send(new DeleteMovieCommandRequest(id), cancellationToken);
+        return deleteResult ? TypedResults.NoContent() : TypedResults.NotFound();
     }
 
     private static async Task<CreatedAtRoute<MovieDetailsViewModel>> CreateMovie([FromServices] IMediator mediator,

@@ -39,11 +39,8 @@ public class ActorsEndpointsTests
         actorsResult.Should().NotBeNullOrEmpty();
         actorsResult.Should().HaveCount(2);
 
-        actorsResult![0].Name.Should().Be(actors[0].Name);
-        actorsResult[0].Id.Should().Be(actors[0].Id);
-
-        actorsResult[1].Name.Should().Be(actors[1].Name);
-        actorsResult[1].Id.Should().Be(actors[1].Id);
+        actorsResult.Should().Contain(x => x.Name == actors[0].Name && x.Id == actors[0].Id);
+        actorsResult.Should().Contain(x => x.Name == actors[1].Name && x.Id == actors[1].Id);
     }
 
     [Fact]
