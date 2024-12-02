@@ -1,11 +1,12 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
 using MoviesApi.Entities;
 using MoviesApi.Features.Actors;
 using MoviesApi.Features.Actors.Models;
+using MoviesApi.Validations;
 
 namespace MoviesApi.Tests.Endpoints;
 
@@ -98,12 +99,12 @@ public class ActorsEndpointsTests
 
         var actor = new Actor
         {
-            Name = "actor-details",
+            Name = "actor-name",
             Movies = new HashSet<Movie>
             {
                 new()
                 {
-                    Title = "movie-details",
+                    Title = "movie-title",
                     Description = "movie-details",
                     ReleaseDate = DateTime.Now,
                     Ratings = [new MovieRating(4)]
@@ -135,7 +136,7 @@ public class ActorsEndpointsTests
         await using var applicationDbContext = application.CreateApplicationDbContext();
         var movie = new Movie
         {
-            Title = "movie-details",
+            Title = "movie-title",
             Description = "movie-details",
             ReleaseDate = DateTime.Now,
             Ratings = [new MovieRating(4)]
@@ -153,6 +154,43 @@ public class ActorsEndpointsTests
         actorDetailsResponse!.Name.Should().Be(actorName);
         actorDetailsResponse!.Movies.Should().HaveCount(1);
         actorDetailsResponse.Movies.First().Title.Should().Be(movie.Title);
+    }
+
+    [Fact]
+    public async Task CreateActor_InvalidName_ReturnsBadRequest()
+    {
+        var actorName = new string('a', 101);
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+        var movie = new Movie
+        {
+            Title = "movie-title",
+            Description = "movie-details",
+            ReleaseDate = DateTime.Now,
+            Ratings = [new MovieRating(4)]
+        };
+        await applicationDbContext.Movies.AddAsync(movie);
+        await applicationDbContext.SaveChangesAsync();
+
+        var client = application.CreateAuthorizedClient();
+        var response =
+            await client.PostAsJsonAsync("/actors", new CreateActorCommandRequest(actorName, [movie.Id]));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        problemDetails!.Type.Should().Be("ValidationFailure");
+        problemDetails.Title.Should().Be("Validation error");
+        problemDetails.Detail.Should().Be("One or more validation errors has occurred");
+
+        var errors = JsonSerializer.Deserialize<ValidationError[]>(problemDetails.Extensions["errors"]!.ToString()!,
+            new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+        errors!.Length.Should().Be(1);
+        errors[0].PropertyName.Should().Be("Name");
+        errors[0].ErrorMessage.Should()
+            .Be("The length of 'Name' must be 100 characters or fewer. You entered 101 characters.");
     }
 
     [Fact]
@@ -175,7 +213,7 @@ public class ActorsEndpointsTests
 
         var actor = new Actor
         {
-            Name = "actor-details"
+            Name = "actor-name"
         };
         await applicationDbContext.Actors.AddRangeAsync(actor);
         await applicationDbContext.SaveChangesAsync();
@@ -211,7 +249,7 @@ public class ActorsEndpointsTests
         };
         var actor = new Actor
         {
-            Name = "actor-details",
+            Name = "actor-name",
             Movies = new HashSet<Movie>
             {
                 movie
@@ -239,7 +277,7 @@ public class ActorsEndpointsTests
 
         var actor = new Actor
         {
-            Name = "actor-details"
+            Name = "actor-name"
         };
         await applicationDbContext.Actors.AddRangeAsync(actor);
         await applicationDbContext.SaveChangesAsync();
@@ -256,7 +294,7 @@ public class ActorsEndpointsTests
         await using var applicationDbContext = application.CreateApplicationDbContext();
         var actor = new Actor
         {
-            Name = "actor-details"
+            Name = "actor-name"
         };
 
         var client = application.CreateAuthorizedClient();
@@ -271,7 +309,7 @@ public class ActorsEndpointsTests
         await using var applicationDbContext = application.CreateApplicationDbContext();
         var actor = new Actor
         {
-            Name = "actor-details",
+            Name = "actor-name",
             Movies = new HashSet<Movie>
             {
                 new()
@@ -308,5 +346,58 @@ public class ActorsEndpointsTests
         actorDetailsResponse.Name.Should().Be(updateActorCommandRequest.Name);
         actorDetailsResponse.Movies.Should().HaveCount(1);
         actorDetailsResponse.Movies.First().Id.Should().Be(updateActorCommandRequest.Movies!.First());
+    }
+
+    [Fact]
+    public async Task UpdateActor_InvalidName_ReturnsBadRequest()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+        var actor = new Actor
+        {
+            Name = "actor-details",
+            Movies = new HashSet<Movie>
+            {
+                new()
+                {
+                    Title = "movie-title-1",
+                    Description = "movie-details-1",
+                    ReleaseDate = DateTime.Now,
+                    Ratings = [new MovieRating(4)]
+                },
+                new()
+                {
+                    Title = "movie-title-2",
+                    Description = "movie-details-2",
+                    ReleaseDate = DateTime.Now,
+                    Ratings = [new MovieRating(4)]
+                }
+            }
+        };
+        var updateActorCommandRequest =
+            new UpdateActorCommandRequest(actor.Id, new string('a', 101), [actor.Movies.First().Id]);
+
+        await applicationDbContext.Actors.AddAsync(actor);
+        await applicationDbContext.SaveChangesAsync();
+
+        var client = application.CreateAuthorizedClient();
+        var result =
+            await client.PutAsJsonAsync($"/actors/{updateActorCommandRequest.Id}", updateActorCommandRequest);
+
+        result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var problemDetails = await result.Content.ReadFromJsonAsync<ProblemDetails>();
+        problemDetails!.Type.Should().Be("ValidationFailure");
+        problemDetails.Title.Should().Be("Validation error");
+        problemDetails.Detail.Should().Be("One or more validation errors has occurred");
+
+        var errors = JsonSerializer.Deserialize<ValidationError[]>(problemDetails.Extensions["errors"]!.ToString()!,
+            new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+        errors!.Length.Should().Be(1);
+        errors[0].PropertyName.Should().Be("Name");
+        errors[0].ErrorMessage.Should()
+            .Be("The length of 'Name' must be 100 characters or fewer. You entered 101 characters.");
     }
 }
