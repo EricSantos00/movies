@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Text.Json.Serialization;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoviesApi.Data;
@@ -14,7 +15,7 @@ namespace MoviesApi.Features.Movies;
 /// <param name="ReleaseDate">The updated release date of the movie.</param>
 /// <param name="Actors">An optional list of unique identifiers for the actors associated with the movie.</param>
 public record UpdateMovieCommandRequest(
-    Guid Id,
+    [property: JsonIgnore] Guid Id,
     string Title,
     string Description,
     DateTime ReleaseDate,

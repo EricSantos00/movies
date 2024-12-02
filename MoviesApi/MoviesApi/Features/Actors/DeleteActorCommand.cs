@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using System.Text.Json.Serialization;
+using MediatR;
 using MoviesApi.Data;
 
 namespace MoviesApi.Features.Actors;
@@ -7,7 +8,7 @@ namespace MoviesApi.Features.Actors;
 /// Represents a command to delete an actor from the system.
 /// </summary>
 /// <param name="Id">The unique identifier of the actor to be deleted.</param>
-public record DeleteActorCommandRequest(Guid Id) : IRequest<bool>;
+public record DeleteActorCommandRequest([property: JsonIgnore] Guid Id) : IRequest<bool>;
 
 public class DeleteActorCommandHandler(ApplicationDbContext applicationDbContext)
     : IRequestHandler<DeleteActorCommandRequest, bool>

@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Text.Json.Serialization;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoviesApi.Data;
@@ -11,7 +12,7 @@ namespace MoviesApi.Features.Movies;
 /// </summary>
 /// <param name="Id">The unique identifier of the movie to be rated.</param>
 /// <param name="Rate">The rating value. 0 ~ 5</param>
-public record RateMovieCommandRequest(Guid Id, int Rate) : IRequest<bool>;
+public record RateMovieCommandRequest([property: JsonIgnore] Guid Id, int Rate) : IRequest<bool>;
 
 public class RateMovieCommandRequestValidator : AbstractValidator<RateMovieCommandRequest>
 {

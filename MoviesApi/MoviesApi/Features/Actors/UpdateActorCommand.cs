@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Text.Json.Serialization;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MoviesApi.Data;
@@ -12,7 +13,7 @@ namespace MoviesApi.Features.Actors;
 /// <param name="Name">The updated name of the actor.</param>
 /// <param name="Movies">An optional list of unique identifiers for the movies associated with the actor.</param>
 public record UpdateActorCommandRequest(
-   Guid Id, string Name, List<Guid>? Movies) : IRequest<bool>;
+   [property: JsonIgnore] Guid Id, string Name, List<Guid>? Movies) : IRequest<bool>;
 
 public class UpdateActorCommandRequestValidator : AbstractValidator<UpdateActorCommandRequest>
 {

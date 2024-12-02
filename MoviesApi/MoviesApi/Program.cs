@@ -11,6 +11,8 @@ builder.Services.AddSwagger();
 builder.Services.AddAppServices();
 
 var app = builder.Build();
+
+// This should be used only in development
 await app.Services.SeedDatabase();
 
 // Configure the HTTP request pipeline.
