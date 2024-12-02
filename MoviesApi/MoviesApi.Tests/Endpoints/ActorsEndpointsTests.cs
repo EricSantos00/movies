@@ -1,5 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using FluentAssertions;
 using MoviesApi.Entities;
 using MoviesApi.Features.Actors;
@@ -224,8 +226,87 @@ public class ActorsEndpointsTests
 
         var actorDetails = await client.GetAsync($"/actors/{actor.Id}");
         actorDetails.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        
+
         var movieInDb = await applicationDbContext.Movies.FindAsync(movie.Id);
         movieInDb.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task UpdateActor_UnauthorizedClient_ReturnsForbidden()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+
+        var actor = new Actor
+        {
+            Name = "actor-details"
+        };
+        await applicationDbContext.Actors.AddRangeAsync(actor);
+        await applicationDbContext.SaveChangesAsync();
+
+        var client = application.CreateClient();
+        var response = await client.PutAsJsonAsync($"/actors/{actor.Id}", actor);
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task UpdateActor_NonExistingActor_ReturnsNotFound()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+        var actor = new Actor
+        {
+            Name = "actor-details"
+        };
+
+        var client = application.CreateAuthorizedClient();
+        var response = await client.PutAsJsonAsync($"/actors/{Guid.NewGuid()}", actor);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task UpdateActor_UpdatesActor()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+        var actor = new Actor
+        {
+            Name = "actor-details",
+            Movies = new HashSet<Movie>
+            {
+                new()
+                {
+                    Title = "movie-title-1",
+                    Description = "movie-details-1",
+                    ReleaseDate = DateTime.Now,
+                    Ratings = [new MovieRating(4)]
+                },
+                new()
+                {
+                    Title = "movie-title-2",
+                    Description = "movie-details-2",
+                    ReleaseDate = DateTime.Now,
+                    Ratings = [new MovieRating(4)]
+                }
+            }
+        };
+        var updateActorCommandRequest =
+            new UpdateActorCommandRequest(actor.Id, "actor-updated", [actor.Movies.First().Id]);
+
+        await applicationDbContext.Actors.AddAsync(actor);
+        await applicationDbContext.SaveChangesAsync();
+
+        var client = application.CreateAuthorizedClient();
+        var actorResult =
+            await client.PutAsJsonAsync($"/actors/{updateActorCommandRequest.Id}", updateActorCommandRequest);
+
+        actorResult.Should().NotBeNull();
+        actorResult.StatusCode.Should().Be(HttpStatusCode.OK);
+        var actorDetailsResponse = await actorResult.Content.ReadFromJsonAsync<ActorDetailsViewModel>();
+
+        actorDetailsResponse!.Id.Should().Be(actor.Id);
+        actorDetailsResponse.Name.Should().Be(updateActorCommandRequest.Name);
+        actorDetailsResponse.Movies.Should().HaveCount(1);
+        actorDetailsResponse.Movies.First().Id.Should().Be(updateActorCommandRequest.Movies!.First());
     }
 }

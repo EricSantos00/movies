@@ -34,7 +34,6 @@ public class UpdateActorCommandHandler(ApplicationDbContext applicationDbContext
         if (request.Movies is not null)
         {
             var existingMovies = await applicationDbContext.Movies
-                .AsNoTracking()
                 .Where(x => request.Movies.Contains(x.Id))
                 .ToHashSetAsync(cancellationToken);
 
