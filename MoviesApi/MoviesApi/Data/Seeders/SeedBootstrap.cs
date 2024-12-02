@@ -1,4 +1,6 @@
-﻿namespace MoviesApi.Data.Seeders;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace MoviesApi.Data.Seeders;
 
 public static class SeedBootstrap
 {
@@ -6,7 +8,7 @@ public static class SeedBootstrap
     {
         using var scope = serviceProvider.CreateScope();
         var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        await applicationDbContext.Database.EnsureCreatedAsync();
+        await applicationDbContext.Database.MigrateAsync();
 
         await MovieActorSeeder.SeedAsync(applicationDbContext);
     }

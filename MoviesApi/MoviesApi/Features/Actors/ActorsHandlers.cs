@@ -41,37 +41,39 @@ public static class ActorsHandlers
         return routes;
     }
 
-    private static async Task<Results<NoContent, NotFound>> DeleteActor([FromServices] IMediator mediator, Guid id)
+    private static async Task<Results<NoContent, NotFound>> DeleteActor([FromServices] IMediator mediator, Guid id,
+        CancellationToken cancellationToken = default)
     {
-        var deleteResult = await mediator.Send(new DeleteActorCommandRequest(id));
+        var deleteResult = await mediator.Send(new DeleteActorCommandRequest(id), cancellationToken);
         return deleteResult ? TypedResults.NoContent() : TypedResults.NotFound();
     }
 
     private static async Task<Results<Ok<ActorDetailsViewModel>, NotFound<string>>> UpdateActor(
         [FromServices] IMediator mediator,
         Guid id,
-        UpdateActorCommandRequest request)
+        UpdateActorCommandRequest request,
+        CancellationToken cancellationToken = default)
     {
-        var updateResult = await mediator.Send(request with { Id = id });
+        var updateResult = await mediator.Send(request with { Id = id }, cancellationToken);
         if (updateResult)
         {
-            return TypedResults.Ok(await mediator.Send(new GetActorDetailsQueryRequest(id)));
+            return TypedResults.Ok(await mediator.Send(new GetActorDetailsQueryRequest(id), cancellationToken));
         }
 
         return TypedResults.NotFound("Actor not found");
     }
 
     private static async Task<Ok<List<ActorViewModel>>> GetActors([FromServices] IMediator mediator,
-        [AsParameters] GetActorsQueryRequest request)
+        [AsParameters] GetActorsQueryRequest request, CancellationToken cancellationToken = default)
     {
-        var actors = await mediator.Send(request);
+        var actors = await mediator.Send(request, cancellationToken);
         return TypedResults.Ok(actors);
     }
 
     private static async Task<Results<Ok<ActorDetailsViewModel>, NotFound>> GetActorDetails(
-        [FromServices] IMediator mediator, Guid id)
+        [FromServices] IMediator mediator, Guid id, CancellationToken cancellationToken = default)
     {
-        var actorDetails = await mediator.Send(new GetActorDetailsQueryRequest(id));
+        var actorDetails = await mediator.Send(new GetActorDetailsQueryRequest(id), cancellationToken);
         if (actorDetails is null)
             return TypedResults.NotFound();
 
@@ -79,10 +81,10 @@ public static class ActorsHandlers
     }
 
     private static async Task<CreatedAtRoute<ActorDetailsViewModel>> CreateActor([FromServices] IMediator mediator,
-        CreateActorCommandRequest request)
+        CreateActorCommandRequest request, CancellationToken cancellationToken = default)
     {
-        var result = await mediator.Send(request);
-        var actorDetails = await mediator.Send(new GetActorDetailsQueryRequest(result));
+        var result = await mediator.Send(request, cancellationToken);
+        var actorDetails = await mediator.Send(new GetActorDetailsQueryRequest(result), cancellationToken);
         return TypedResults.CreatedAtRoute(actorDetails, nameof(GetActorDetails), new { id = result });
     }
 }

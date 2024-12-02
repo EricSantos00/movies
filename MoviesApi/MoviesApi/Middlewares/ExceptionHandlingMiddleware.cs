@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MoviesApi.Validations;
+using MoviesApi.Validation;
 
 namespace MoviesApi.Middlewares;
 

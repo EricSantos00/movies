@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using MoviesApi.Entities;
 using MoviesApi.Features.Actors;
 using MoviesApi.Features.Actors.Models;
-using MoviesApi.Validations;
+using MoviesApi.Validation;
 
 namespace MoviesApi.Tests.Endpoints;
 

@@ -1,4 +1,4 @@
-﻿namespace MoviesApi.Validations;
+﻿namespace MoviesApi.Validation;
 
 public record ValidationError(string PropertyName, string ErrorMessage);
 

@@ -1,6 +1,7 @@
 using MoviesApi.Data.Seeders;
 using MoviesApi.Extensions;
 using MoviesApi.Features.Actors;
+using MoviesApi.Features.Movies;
 using MoviesApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,5 +24,6 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.MapGroup("/actors").MapActors();
+app.MapGroup("/movies").MapMovies();
 
 app.Run();

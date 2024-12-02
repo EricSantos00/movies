@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using MoviesApi.Data;
 using MoviesApi.Features.Actors;
-using MoviesApi.Validations;
+using MoviesApi.Validation;
 
 namespace MoviesApi.Extensions;
 
@@ -10,7 +10,7 @@ public static class AppConfigurationExtensions
 {
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
-        services.AddDbContext<ApplicationDbContext>(x => x.UseInMemoryDatabase("MoviesDb"));
+        services.AddDbContext<ApplicationDbContext>(x => x.UseSqlite("Data source=movies.db"));
 
         services.AddMediatR(x =>
         {

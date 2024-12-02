@@ -1,4 +1,4 @@
-﻿using MoviesApi.Validations;
+﻿using MoviesApi.Validation;
 
 namespace MoviesApi.Entities;
 

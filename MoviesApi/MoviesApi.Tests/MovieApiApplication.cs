@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,6 +10,8 @@ namespace MoviesApi.Tests;
 
 internal class MovieApiApplication : WebApplicationFactory<Program>
 {
+    private readonly SqliteConnection _sqliteConnection = new("Filename=:memory:");
+
     public ApplicationDbContext CreateApplicationDbContext()
     {
         var db = Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext();
@@ -27,12 +30,20 @@ internal class MovieApiApplication : WebApplicationFactory<Program>
 
     protected override IHost CreateHost(IHostBuilder builder)
     {
+        _sqliteConnection.Open();
+
         builder.ConfigureServices(services =>
         {
             services.AddDbContextFactory<ApplicationDbContext>();
-            services.AddDbContextOptions<ApplicationDbContext>(o => o.UseInMemoryDatabase("MoviesDb"));
+            services.AddDbContextOptions<ApplicationDbContext>(o => o.UseSqlite(_sqliteConnection));
         });
 
         return base.CreateHost(builder);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        _sqliteConnection.Dispose();
+        base.Dispose(disposing);
     }
 }
