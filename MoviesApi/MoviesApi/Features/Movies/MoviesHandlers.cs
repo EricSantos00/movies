@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using MoviesApi.Extensions;
 using MoviesApi.Features.Movies.Models;
 
 namespace MoviesApi.Features.Movies;
@@ -14,7 +15,38 @@ public static class MoviesHandlers
             .WithDescription("Get all movies")
             .WithName(nameof(GetMovies));
 
+        routes.MapGet("/{id:guid}", GetMovieDetails)
+            .WithTags("movies")
+            .WithDescription("Get a movie details by a given id")
+            .WithName(nameof(GetMovieDetails));
+
+        routes.MapPost("/", CreateMovie)
+            .WithTags("movies")
+            .WithDescription("Create a new movie")
+            .WithName(nameof(CreateMovie))
+            .RequiresApiKey();
+
         return routes;
+    }
+
+    private static async Task<CreatedAtRoute<MovieDetailsViewModel>> CreateMovie([FromServices] IMediator mediator,
+        CreateMovieCommandRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var createdMovieId = await mediator.Send(request, cancellationToken);
+        var movieDetails = await mediator.Send(new GetMovieDetailsQueryRequest(createdMovieId), cancellationToken);
+        return TypedResults.CreatedAtRoute(movieDetails, nameof(GetMovieDetails), new { id = createdMovieId });
+    }
+
+    private static async Task<Results<Ok<MovieDetailsViewModel>, NotFound>> GetMovieDetails(
+        [FromServices] IMediator mediator, Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var movieDetails = await mediator.Send(new GetMovieDetailsQueryRequest(id), cancellationToken);
+        if (movieDetails is null)
+            return TypedResults.NotFound();
+
+        return TypedResults.Ok(movieDetails);
     }
 
     private static async Task<Ok<List<MovieViewModel>>> GetMovies([FromServices] IMediator mediator,

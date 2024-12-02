@@ -83,8 +83,8 @@ public static class ActorsHandlers
     private static async Task<CreatedAtRoute<ActorDetailsViewModel>> CreateActor([FromServices] IMediator mediator,
         CreateActorCommandRequest request, CancellationToken cancellationToken = default)
     {
-        var result = await mediator.Send(request, cancellationToken);
-        var actorDetails = await mediator.Send(new GetActorDetailsQueryRequest(result), cancellationToken);
-        return TypedResults.CreatedAtRoute(actorDetails, nameof(GetActorDetails), new { id = result });
+        var createdActorId = await mediator.Send(request, cancellationToken);
+        var actorDetails = await mediator.Send(new GetActorDetailsQueryRequest(createdActorId), cancellationToken);
+        return TypedResults.CreatedAtRoute(actorDetails, nameof(GetActorDetails), new { id = createdActorId });
     }
 }

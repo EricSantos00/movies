@@ -1,7 +1,12 @@
-﻿using System.Net.Http.Json;
+﻿using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
 using MoviesApi.Entities;
+using MoviesApi.Features.Movies;
 using MoviesApi.Features.Movies.Models;
+using MoviesApi.Validation;
 
 namespace MoviesApi.Tests.Endpoints;
 
@@ -93,5 +98,129 @@ public class MoviesEndpointsTests
         actorsResult.Should().NotBeNullOrEmpty();
         actorsResult.Should().HaveCount(2);
         actorsResult.Should().AllSatisfy(x => { x.Title.Should().Contain("Godfather"); });
+    }
+
+    [Fact]
+    public async Task GetMovieDetails_NonExistingMovie_ReturnsNotFound()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+
+        var client = application.CreateClient();
+        var result = await client.GetAsync($"/movies/{Guid.NewGuid()}");
+
+        result.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetMovieDetails_ExistingMovie_ReturnsMovieDetails()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+        var movie = new Movie
+        {
+            Title = "The Godfather I",
+            Description = "movie-details-1",
+            ReleaseDate = DateTime.Now,
+            Ratings = [new MovieRating(5)],
+            Actors = new HashSet<Actor>
+            {
+                new()
+                {
+                    Name = "Al Pacino"
+                }
+            }
+        };
+        await applicationDbContext.Movies.AddRangeAsync(movie);
+        await applicationDbContext.SaveChangesAsync();
+
+        var client = application.CreateClient();
+        var movieDetailsResult = await client.GetFromJsonAsync<MovieDetailsViewModel>($"/movies/{movie.Id}");
+
+        movieDetailsResult.Should().NotBeNull();
+        movieDetailsResult!.Id.Should().Be(movie.Id);
+        movieDetailsResult.Title.Should().Be(movie.Title);
+        movieDetailsResult.Description.Should().Be(movie.Description);
+        movieDetailsResult.ReleaseDate.Should().Be(movie.ReleaseDate);
+        movieDetailsResult.AverageRating.Should().Be(5);
+        movieDetailsResult.Actors.Should().HaveCount(1);
+        movieDetailsResult.Actors.First().Name.Should().Be("Al Pacino");
+    }
+
+    [Fact]
+    public async Task CreateActor_ReturnsCreatedActorDetails()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+        var actor = new Actor
+        {
+            Name = "Al Pacino"
+        };
+        await applicationDbContext.Actors.AddAsync(actor);
+        await applicationDbContext.SaveChangesAsync();
+        var createMovieCommandRequest =
+            new CreateMovieCommandRequest("The Godfather II", "movie-description", DateTime.Now, [actor.Id, actor.Id]);
+
+        var client = application.CreateAuthorizedClient();
+        var response = await client.PostAsJsonAsync("/movies", createMovieCommandRequest);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var movieDetailsResponse = await response.Content.ReadFromJsonAsync<MovieDetailsViewModel>();
+        movieDetailsResponse.Should().NotBeNull();
+        movieDetailsResponse!.Title.Should().Be(createMovieCommandRequest.Title);
+        movieDetailsResponse.Description.Should().Be(createMovieCommandRequest.Description);
+        movieDetailsResponse.ReleaseDate.Should().Be(createMovieCommandRequest.ReleaseDate);
+        movieDetailsResponse.AverageRating.Should().Be(0);
+        movieDetailsResponse.Actors.Should().HaveCount(1);
+        movieDetailsResponse.Actors.First().Name.Should().Be("Al Pacino");
+    }
+
+    [Fact]
+    public async Task CreateMovie_InvalidFieldLength_ReturnsBadRequest()
+    {
+        await using var application = new MovieApiApplication();
+        await using var applicationDbContext = application.CreateApplicationDbContext();
+        var actor = new Actor
+        {
+            Name = "Al Pacino"
+        };
+        await applicationDbContext.Actors.AddAsync(actor);
+        await applicationDbContext.SaveChangesAsync();
+        var createMovieCommandRequest =
+            new CreateMovieCommandRequest(new string('a', 501), new string('a', 2001), DateTime.Now, [actor.Id]);
+
+        var client = application.CreateAuthorizedClient();
+        var response =
+            await client.PostAsJsonAsync("/movies", createMovieCommandRequest);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        problemDetails!.Type.Should().Be("ValidationFailure");
+        problemDetails.Title.Should().Be("Validation error");
+        problemDetails.Detail.Should().Be("One or more validation errors has occurred");
+
+        var errors = JsonSerializer.Deserialize<ValidationError[]>(problemDetails.Extensions["errors"]!.ToString()!,
+            new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+        errors!.Length.Should().Be(2);
+        errors.Should().Contain(x => x.PropertyName == "Title" && x.ErrorMessage ==
+            "The length of 'Title' must be 500 characters or fewer. You entered 501 characters.");
+        errors.Should().Contain(x => x.PropertyName == "Description" && x.ErrorMessage ==
+            "The length of 'Description' must be 2000 characters or fewer. You entered 2001 characters.");
+    }
+
+    [Fact]
+    public async Task CreateMovie_UnauthorizedClient_ReturnsForbidden()
+    {
+        await using var application = new MovieApiApplication();
+
+        var client = application.CreateClient();
+        var response =
+            await client.PostAsJsonAsync("/movies",
+                new CreateMovieCommandRequest("The Godfather II", "movie-description", DateTime.Now, []));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }
