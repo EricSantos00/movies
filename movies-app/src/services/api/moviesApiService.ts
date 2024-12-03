@@ -1,14 +1,18 @@
 import { API_BASE_URL } from "../../constants";
 import { BaseApiService } from "./baseApiService";
-import { Movie } from "./models/movies";
+import { Movie, MovieDetails } from "./models/movies";
 
 export class MoviesApiService extends BaseApiService {
     constructor() {
-        super(`${API_BASE_URL}/movies/`);
+        super(`${API_BASE_URL}movies/`);
     }
 
-    public async getMovies(): Promise<Movie[]> {
-        return this.fetch();
+    public async getMovies() {
+        return this.fetch<Movie[]>();
+    }
+
+    public async getMovieDetails(id: string) {
+        return this.fetch<MovieDetails>(id);
     }
 }
 

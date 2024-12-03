@@ -22,7 +22,7 @@ public static class MovieActorSeeder
 
         var moviesGenerator = new Faker<Movie>()
             .RuleFor(m => m.Title, f => f.Random.Words(3))
-            .RuleFor(m => m.Description, f => f.Lorem.Sentence(500))
+            .RuleFor(m => m.Description, f => f.Lorem.Sentence(100))
             .RuleFor(m => m.ReleaseDate, f => f.Date.Past())
             .RuleFor(m => m.Actors, f => f.PickRandom(actors, 20).ToHashSet());
 

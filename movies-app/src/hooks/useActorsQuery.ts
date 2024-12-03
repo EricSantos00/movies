@@ -1,8 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-export const useMoviesQuery = <T>(queryFn: () => Promise<T>) => {
+export const useActorsQuery = <T>(queryFn: () => Promise<T>) => {
     return useSuspenseQuery({
-        queryKey: ['movies'],
+        queryKey: ['actors'],
         queryFn
     });
 };

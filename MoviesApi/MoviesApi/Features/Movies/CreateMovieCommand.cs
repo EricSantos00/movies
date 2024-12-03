@@ -20,8 +20,8 @@ public class CreateMovieCommandRequestValidator : AbstractValidator<CreateMovieC
 {
     public CreateMovieCommandRequestValidator()
     {
-        RuleFor(x => x.Title).NotEmpty().MaximumLength(500);
-        RuleFor(x => x.Description).NotEmpty().MaximumLength(2000);
+        RuleFor(x => x.Title).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Description).NotEmpty().MaximumLength(100);
     }
 }
 
