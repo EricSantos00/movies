@@ -1,0 +1,19 @@
+﻿services:
+  moviesapi:
+    image: moviesapi
+    build:
+      context: ./MoviesApi
+      dockerfile: Dockerfile
+    ports:
+      - 5175:8080
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+  moviesapp:
+    image: moviesapp
+    build:
+      context: ./movies-app
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000:3000
