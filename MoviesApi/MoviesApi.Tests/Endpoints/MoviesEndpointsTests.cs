@@ -187,7 +187,7 @@ public class MoviesEndpointsTests
         await applicationDbContext.Actors.AddAsync(actor);
         await applicationDbContext.SaveChangesAsync();
         var createMovieCommandRequest =
-            new CreateMovieCommandRequest(new string('a', 501), new string('a', 2001), DateTime.Now, [actor.Id]);
+            new CreateMovieCommandRequest(new string('a', 101), new string('a', 101), DateTime.Now, [actor.Id]);
 
         var client = application.CreateAuthorizedClient();
         var response =
@@ -206,9 +206,9 @@ public class MoviesEndpointsTests
             });
         errors!.Length.Should().Be(2);
         errors.Should().Contain(x => x.PropertyName == "Title" && x.ErrorMessage ==
-            "The length of 'Title' must be 500 characters or fewer. You entered 501 characters.");
+            "The length of 'Title' must be 100 characters or fewer. You entered 101 characters.");
         errors.Should().Contain(x => x.PropertyName == "Description" && x.ErrorMessage ==
-            "The length of 'Description' must be 2000 characters or fewer. You entered 2001 characters.");
+            "The length of 'Description' must be 100 characters or fewer. You entered 101 characters.");
     }
 
     [Fact]
@@ -402,7 +402,7 @@ public class MoviesEndpointsTests
         await applicationDbContext.Movies.AddAsync(movie);
         await applicationDbContext.SaveChangesAsync();
         var updateMovieCommandRequest =
-            new UpdateMovieCommandRequest(movie.Id, new string('a', 501), new string('a', 2001), DateTime.Now, []);
+            new UpdateMovieCommandRequest(movie.Id, new string('a', 101), new string('a', 101), DateTime.Now, []);
 
         var client = application.CreateAuthorizedClient();
         var result =
@@ -421,9 +421,9 @@ public class MoviesEndpointsTests
             });
         errors!.Length.Should().Be(2);
         errors.Should().Contain(x => x.PropertyName == "Title" && x.ErrorMessage ==
-            "The length of 'Title' must be 500 characters or fewer. You entered 501 characters.");
+            "The length of 'Title' must be 100 characters or fewer. You entered 101 characters.");
         errors.Should().Contain(x => x.PropertyName == "Description" && x.ErrorMessage ==
-            "The length of 'Description' must be 2000 characters or fewer. You entered 2001 characters.");
+            "The length of 'Description' must be 100 characters or fewer. You entered 101 characters.");
     }
 
     [Fact]
