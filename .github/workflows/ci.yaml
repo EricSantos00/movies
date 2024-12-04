@@ -15,10 +15,10 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore MoviesApi/MoviesApi.sln
+        run: dotnet restore movies-api/MoviesApi.sln
 
       - name: dotnet build
-        run: dotnet build MoviesApi/MoviesApi.sln -c Release --no-restore
+        run: dotnet build movies-api/MoviesApi.sln -c Release --no-restore
 
       - name: dotnet test
-        run: dotnet test MoviesApi/MoviesApi.sln -c Release --no-build
+        run: dotnet test movies-api/MoviesApi.sln -c Release --no-build

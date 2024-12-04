@@ -2,7 +2,7 @@
   moviesapi:
     image: moviesapi
     build:
-      context: ./MoviesApi
+      context: ./movies-api
       dockerfile: Dockerfile
     ports:
       - 5175:8080
