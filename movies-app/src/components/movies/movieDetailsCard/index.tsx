@@ -1,7 +1,7 @@
 import { GridList } from "@/components/common/gridList";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../ui/card";
-import { MovieRating } from "../movieRating/movieRating";
+import { MovieRating } from "../movieRating";
 
 type MovieDetailsActorProps = {
     id: string;

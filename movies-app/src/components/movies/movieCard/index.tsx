@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../ui/card";
-import { MovieRating } from "../movieRating/movieRating";
+import { MovieRating } from "../movieRating";
 
 export type MovieCardProps = {
     title: string | React.ReactElement;
